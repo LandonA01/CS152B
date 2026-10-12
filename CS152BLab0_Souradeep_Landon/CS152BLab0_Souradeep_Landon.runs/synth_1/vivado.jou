@@ -1,0 +1,24 @@
+#-----------------------------------------------------------
+# Vivado v2025.2 (64-bit)
+# SW Build 6299465 on Fri Nov 14 19:35:11 GMT 2025
+# IP Build 6300035 on Fri Nov 14 10:48:45 MST 2025
+# SharedData Build 6298862 on Thu Nov 13 04:50:51 MST 2025
+# Start of session at: Wed Sep 30 11:11:02 2026
+# Process ID         : 20284
+# Current directory  : C:/Users/Student/Desktop/CS152BLab0_Souradeep_Landon/CS152BLab0_Souradeep_Landon.runs/synth_1
+# Command line       : vivado.exe -log four_bit_counter.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source four_bit_counter.tcl
+# Log file           : C:/Users/Student/Desktop/CS152BLab0_Souradeep_Landon/CS152BLab0_Souradeep_Landon.runs/synth_1/four_bit_counter.vds
+# Journal file       : C:/Users/Student/Desktop/CS152BLab0_Souradeep_Landon/CS152BLab0_Souradeep_Landon.runs/synth_1\vivado.jou
+# Running On         : CS152B-08
+# Platform           : Windows Server 2016 or Windows 10
+# Operating System   : 26200
+# Processor Detail   : Intel(R) Core(TM) i5-9500 CPU @ 3.00GHz
+# CPU Frequency      : 3000 MHz
+# CPU Physical cores : 6
+# CPU Logical cores  : 6
+# Host memory        : 8411 MB
+# Swap memory        : 5640 MB
+# Total Virtual      : 14051 MB
+# Available Virtual  : 1938 MB
+#-----------------------------------------------------------
+source four_bit_counter.tcl -notrace
