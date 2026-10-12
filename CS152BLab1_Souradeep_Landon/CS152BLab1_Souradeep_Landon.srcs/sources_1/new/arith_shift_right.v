@@ -1,80 +1,33 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/09/2026 10:11:15 AM
-// Design Name: 
-// Module Name: arith_shift_right
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 
 module arith_shift_right(
-       input wire [15:0] A,
-       input wire [15:0] B,
-       output wire [15:0] A_shifted 
+    input wire [15:0] A, B,
+    output wire [15:0] A_shifted
+);
+    wire [15:0] stage1, stage2, stage4, stage8;
+    wire shift_16_or_more;
+
+    sixteen_bit_mux shift1 (
+        .A({A[15], A[15:1]}), .B(A), .sel(B[0]), .Y(stage1)
+    );
+    sixteen_bit_mux shift2 (
+        .A({{2{stage1[15]}}, stage1[15:2]}),
+        .B(stage1), .sel(B[1]), .Y(stage2)
+    );
+    sixteen_bit_mux shift4 (
+        .A({{4{stage2[15]}}, stage2[15:4]}),
+        .B(stage2), .sel(B[2]), .Y(stage4)
+    );
+    sixteen_bit_mux shift8 (
+        .A({{8{stage4[15]}}, stage4[15:8]}),
+        .B(stage4), .sel(B[3]), .Y(stage8)
     );
 
-    
-     wire [15:0] shift_right_arith_result1, shift_right_arith_result2, shift_right_arith_result3, shift_right_arith_result4, shift_right_arith_result5;
-     
-     
-     //shift by 1
-    sixteen_bit_mux right_arith_shift_1_mux (
-        .A({A[15], A[15:1]}),
-        .B(A),
-        .sel(B[0]),
-        .Y(shift_right_arith_result_1)
+    or (shift_16_or_more,
+        B[4], B[5], B[6], B[7], B[8], B[9],
+        B[10], B[11], B[12], B[13], B[14], B[15]);
+    sixteen_bit_mux shift_big (
+        .A({16{A[15]}}), .B(stage8),
+        .sel(shift_16_or_more), .Y(A_shifted)
     );
-    
-    //shift by 2
-    sixteen_bit_mux right_arith_shift_2_mux (
-        .A({{2{A[15]}}, A[15:2]}),
-        .B(shift_right_arith_result_1),
-        .sel(B[1]),
-        .Y(shift_right_artih_result_2)
-    );
-    
-    
-    //shift by 4
-    sixteen_bit_mux right_arith_shift_3_mux (
-        .A({{4{A[15]}}, A[15:4]}),
-        .B(shift_right_arith_result_2),
-        .sel(B[2]),
-        .Y(shift_right_arith_result_3)
-    );
-    
-    //shift by 8
-    sixteen_bit_mux right_arith_shift_4_mux (
-        .A({{8{A[15]}}, A[15:8]}),
-        .B(shift_right_arith_result_3),
-        .sel(B[4]),
-        .Y(shift_right_arith_result_4)
-    );
-    
-    
-    wire b_15_to_5 = |B[15:5];
-    
-    //shift by 16 or more
-    sixteen_bit_mux right_arith_shift_5_mux (
-        .A({16{A[15]}}),
-        .B(shift_right_arith_result_4),
-        .sel(b_15_to_5),
-        .Y(shift_right_arith_result_5)
-    );
-    
-    assign A_shifted = shift_right_arith_result_5;
-    
-
 endmodule

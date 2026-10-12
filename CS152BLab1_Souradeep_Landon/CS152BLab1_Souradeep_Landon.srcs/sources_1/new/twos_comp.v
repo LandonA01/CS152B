@@ -1,42 +1,23 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/09/2026 10:10:23 AM
-// Design Name: 
-// Module Name: twos_comp
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
 
 module twos_comp(
-        input wire B,
-        output wire B_twos
+    input wire [15:0] B,
+    output wire [15:0] B_twos
+);
+    wire [15:0] B_inverted;
+    
+    genvar i;
+
+    generate
+        for (i = 0; i < 16; i = i + 1) begin : invert_b
+            not (B_inverted[i], B[i]);
+        end
+    endgenerate
+
+    adder16 negate_adder (
+        .A(B_inverted), .B(16'h0001), .Cin(1'b0),
+        .S(B_twos), .Cout()
     );
-    
-    wire B_not;
-    
-    not(B_not, B);
-    
-    
-    adder adder_twos_inst
-    (
-    .A(1'b1),
-    .B(B_not),
-    .Cin(1'b0),
-    .S(B_twos),
-    .Cout(1'b0)
-    );
-    
+
+
 endmodule

@@ -1,41 +1,12 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/09/2026 11:03:25 AM
-// Design Name: 
-// Module Name: decrement
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
-
-
 module decrement(
-        input wire A, Cin,
-        output wire A_dec, Cout
+    input wire [15:0] A,
+    output wire [15:0] A_dec
+);
+    //adding 16'hFFFF is equivalent to subtracting 1 (source: Google)
+    adder16 decrement_adder (
+        .A(A), .B(16'hFFFF), .Cin(1'b0),
+        .S(A_dec), .Cout()
     );
-    
-    
-    subtractor sub_1(
-    .A(B),
-    .B(1'b1),
-    .Cin(Cin),
-    .D(A_dec),
-    .Cout(Cout)
-    );
-
-    
-    
-    
     
 endmodule
