@@ -58,47 +58,74 @@ module uart_rx #(parameter BAUD_RATE = 9600) (
     end
     
     
+    //Auxiliary logic management
+    always @(posedge clk) begin
+        if (rst) begin
+        clk_cnt <= '0;
+        data_index  <= '0;
+        data <= 8'b0;
+        end else begin
+            case (state)
+            IDLE: begin
+                clk_cnt <= '0;
+                data_index <= '0;
+            end
+            START: begin
+                if (clk_cnt < (CLKS_PER_BIT-1)/2) begin
+                    clk_cnt <= clk_cnt + 1;
+                end else begin
+                    clk_cnt <= '0;
+                end
+            end
+            DATA: begin
+                if (clk_cnt < CLKS_PER_BIT-1) begin
+                    clk_cnt <= clk_cnt + 1;
+                end else begin
+                    data[data_index] <= rx_line;
+                    clk_cnt <= '0;
+                    if (data_index < 7) begin
+                        data_index <= data_index + 1;
+                    end else begin
+                        data_index <= 3'b0;
+                    end
+                end
+            end
+            STOP: begin 
+                if (clk_cnt < CLKS_PER_BIT-1) begin
+                    clk_cnt <= clk_cnt + 1;
+                end else begin
+                    clk_cnt <= '0;
+                end
+            end
+            endcase
+        end
+    end
+    
+    
     //Next-state logic
     
     always @(*) begin
-        next_state = IDLE; // default
+        next_state = state; // default
         case (state) 
             IDLE: begin
-                data <= 8'b0;        //performed on reset and new frames
-                clk_cnt <= 0;
-                data_index <= 0;
                 next_state = rx_line ? IDLE : START; //if bit is HIGH, stay. else, go to START
             end
             START: begin
             // need to sample the middle of start here to confirm it is still LOW; else --> IDLE
             // this is --> CLKS_PER_BIT - 1  / 2 cycles
                 if (clk_cnt < (CLKS_PER_BIT-1) / 2) begin
-                    clk_cnt <= clk_cnt + 1;
                     next_state = START; // stay here unil we make the below check
                 end else begin
-                    next_state = rx_line ? IDLE : DATA;
+                    next_state = rx_line ? IDLE : DATA; //confirm we are still low
                 end
             end
             DATA: begin
-                if (clk_cnt < CLKS_PER_BIT -1) begin
-                    clk_cnt <= clk_cnt + 1;
-                end else begin
-                    clk_cnt <= 0;
-                    data[data_index] <= rx_line;
-                    
-                    if (data_index < 8) begin
-                    data_index <= data_index + 1;
-                    end else begin
-                    data_index <= 3'b0;
+                    if (data_index == 7) 
                     next_state = STOP; 
-                    end
-                end
             end
             STOP: begin
-                if (clk_cnt < CLKS_PER_BIT - 1) begin
-                clk_cnt <= clk_cnt + 1;
-                end else begin
-                    clk_cnt <= 0;
+                next_state = STOP;
+                if (clk_cnt == CLKS_PER_BIT - 1) begin
                     next_state = IDLE;
                 end
             end
@@ -108,7 +135,6 @@ module uart_rx #(parameter BAUD_RATE = 9600) (
 
     
   
-    
     
     
     

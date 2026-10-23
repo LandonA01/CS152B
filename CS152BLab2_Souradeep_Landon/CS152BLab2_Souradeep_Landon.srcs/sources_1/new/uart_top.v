@@ -25,7 +25,7 @@ module uart_top(
         input wire rst,
         input wire transmit,
         input wire [7:0] data_in,
-        output reg [7:0] data_out
+        output wire [7:0] data_out
     );
     
     
@@ -46,6 +46,9 @@ module uart_top(
     .transmit(transmit),
     .tx_line(uart_line)    //connect to rx
     );
+    
+    
+    
     
     
     
