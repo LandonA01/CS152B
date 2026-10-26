@@ -1,56 +1,35 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: 
-// Engineer: 
-// 
-// Create Date: 10/21/2026 11:17:26 AM
-// Design Name: 
-// Module Name: uart_top
-// Project Name: 
-// Target Devices: 
-// Tool Versions: 
-// Description: 
-// 
-// Dependencies: 
-// 
-// Revision:
-// Revision 0.01 - File Created
-// Additional Comments:
-// 
-//////////////////////////////////////////////////////////////////////////////////
 
-
-module uart_top(
-        input wire clk,
-        input wire rst,
-        input wire transmit,
-        input wire [7:0] data_in,
-        output wire [7:0] data_out
-    );
-    
-    
-    wire uart_line;
-    
-    
-    uart_rx #(.BAUD_RATE(9600)) receiver (
+module uart_top #(
+    parameter CLOCK_HZ = 100_000_000,
+    parameter BAUD_RATE = 9600
+) (
+    input wire clk,
+    input wire rst,
+    input wire transmit,
+    input wire [7:0] data_in,
+    input wire rx_line,
+    output wire tx_line,
+    output wire [7:0] data_out
+);
+    uart_rx #(
+        .CLOCK_HZ(CLOCK_HZ),
+        .BAUD_RATE(BAUD_RATE)
+    ) receiver (
         .clk(clk),
         .rst(rst),
-        .rx_line(uart_line),   //connect to tx
-        .data(data_out) //LEDs to receive data
+        .rx_line(rx_line),
+        .data(data_out)
     );
-    
-    uart_tx #(.BAUD_RATE(9600)) transmitter (
-    .clk(clk),
-    .rst(rst),
-    .data(data_in),   //Switches to send data
-    .transmit(transmit),
-    .tx_line(uart_line)    //connect to rx
+
+    uart_tx #(
+        .CLOCK_HZ(CLOCK_HZ),
+        .BAUD_RATE(BAUD_RATE)
+    ) transmitter (
+        .clk(clk),
+        .rst(rst),
+        .data(data_in),
+        .transmit(transmit),
+        .tx_line(tx_line)
     );
-    
-    
-    
-    
-    
-    
-    
 endmodule

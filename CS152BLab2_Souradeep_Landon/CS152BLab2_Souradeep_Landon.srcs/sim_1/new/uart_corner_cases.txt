@@ -1,0 +1,152 @@
+UART CORNER CASES AND WAVEFORM GUIDE
+
+Open uart_tb.vcd and add corner_case_id, corner_case_name, clk, rst,
+transmit, data_in, tx_line, rx_line, rx_manual, loopback, and data_out.
+Set corner_case_id to decimal and corner_case_name to ASCII if the viewer
+supports it. Each number marks the start of a test and stays visible until
+the next one. Transmitter frames are start=0, 8 data bits LSB-first, stop=1.
+
+Inputs:
+  Assert rst for 8 clock cycles, then deassert it with transmit=0.
+Expected Result:
+  tx_line=1 and data_out=00.
+Case:
+  01 - RESET_AND_IDLE (initial reset and idle-line behavior; 0 ns)
+
+Inputs:
+  loopback=1, data_in=A5, press and release transmit.
+Expected Result:
+  One correctly framed byte A5 on tx_line; data_out=A5 after its stop bit.
+Case:
+  02 - NORMAL_FRAME_A5 (normal TX/RX loopback; 160 ns)
+
+Inputs:
+  Hold transmit=1 for only 1 clock cycle, then release.
+Expected Result:
+  One correctly framed A5 byte is transmitted and data_out=A5.
+Case:
+  03 - ONE_CYCLE_SEND_PULSE (brief send request; 1310 ns)
+
+Inputs:
+  loopback=1, data_in=00, press and release transmit.
+Expected Result:
+  A start bit, eight low data bits, a high stop bit; data_out=00.
+Case:
+  04 - ALL_ZERO_DATA (all-zero byte; 2460 ns)
+
+Inputs:
+  loopback=1, data_in=FF, press and release transmit.
+Expected Result:
+  A low start bit followed by eight high data bits and a high stop bit;
+  data_out=FF.
+Case:
+  05 - ALL_ONE_DATA (all-one byte; 3610 ns)
+
+Inputs:
+  loopback=1, data_in=81, press and release transmit.
+Expected Result:
+  Bits are sent LSB-first, and data_out=81 after the stop bit.
+Case:
+  06 - EDGE_BITS_81 (first and last data bits high; 4760 ns)
+
+Inputs:
+  Begin sending data_in=53, then change data_in to CA during the frame.
+Expected Result:
+  tx_line completes the original 53 frame; data_out=53.
+Case:
+  07 - DATA_CHANGED_DURING_TX (transmitted byte is latched; 5910 ns)
+
+Inputs:
+  Set data_in=3C and hold transmit high longer than one frame.
+Expected Result:
+  Exactly one 3C frame; tx_line remains high afterward; data_out=3C.
+Case:
+  08 - SEND_BUTTON_HELD (held press does not retrigger; 7060 ns)
+
+Inputs:
+  Start transmitting E7, then press transmit again during the frame.
+Expected Result:
+  Exactly one E7 frame; the second request is ignored; data_out=E7.
+Case:
+  09 - SEND_REQUEST_WHILE_BUSY (busy TX request; 8910 ns)
+
+Inputs:
+  Start transmitting 00, then assert rst partway through the frame.
+Expected Result:
+  The transmission is canceled, tx_line returns high, data_out resets
+  to 00, and transmission does not restart after releasing rst.
+Case:
+  10 - RESET_DURING_TX (transmitter reset mid-frame; 10310 ns)
+
+Inputs:
+  loopback=0; apply a valid 8N1 frame for 96 through rx_manual.
+Expected Result:
+  Each received bit updates its position in data_out; after all eight
+  data bits, data_out=96.
+Case:
+  11 - VALID_EXTERNAL_RX (serial-to-parallel receive; 12250 ns)
+
+Inputs:
+  Pull rx_manual low for only 2 clocks, then return it high.
+Expected Result:
+  Receiver rejects the false start; data_out remains 96.
+Case:
+  12 - FALSE_START_GLITCH (invalid short start; 13350 ns)
+
+Inputs:
+  Send data bits for 01 with the expected stop bit held low.
+Expected Result:
+  Receiver does not check the stop bit and outputs 01.
+Case:
+  13 - STOP_BIT_NOT_CHECKED (stop assumed valid; timestamp pending)
+
+Inputs:
+  Hold rx_manual high for 12 full bit times after the previous frame.
+Expected Result:
+  Receiver remains idle and data_out stays 01.
+Case:
+  14 - EXTENDED_IDLE_HIGH (idle between frames; 14720 ns)
+
+Inputs:
+  Send a valid frame for 39 after the extended idle period.
+Expected Result:
+  Receiver updates data_out to 39.
+Case:
+  15 - NEXT_FRAME_AFTER_IDLE (next valid frame; 15920 ns)
+
+Inputs:
+  Send two valid external RX frames, 55 then AA, with no idle gap.
+Expected Result:
+  First frame updates data_out to 55; second updates it to AA.
+Case:
+  16 - BACK_TO_BACK_RX_FRAMES (consecutive bytes; 17020 ns)
+
+Inputs:
+  Receive a valid F0 frame, then assert rst.
+Expected Result:
+  data_out first becomes F0 and then clears to 00 on reset.
+Case:
+  17 - RESET_CLEARS_RECEIVED_DATA (LED clear; 19120 ns)
+
+Inputs:
+  Start an external RX frame, hold the line low for 3 bit times,
+  assert rst before the frame is complete, then return RX high.
+Expected Result:
+  The partial byte is discarded and data_out remains 00.
+Case:
+  18 - RESET_DURING_RX (receiver reset mid-frame; 20380 ns)
+
+Inputs:
+  In uart_9600_tb.vcd, run the UART at CLOCK_HZ=100000000 and
+  BAUD_RATE=9600, transmitting 69 over a TX-to-RX loopback.
+Expected Result:
+  Each serial bit lasts 10417 clock cycles (rounded); the start, eight
+  data bits and stop are correct, and the receiver outputs 69.
+Case:
+  19 - BAUD_9600_AT_100_MHZ (actual Basys3 rate and clock; starts at 0 ns)
+
+NOTE
+  A UART receiver cannot identify every shortened or lengthened payload
+  from the wire alone: extra or missing bits can look like a valid 8N1
+  byte. This design assumes the stop bit is valid and does not reject
+  frames based on the stop-bit value.
